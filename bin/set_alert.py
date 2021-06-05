@@ -1,4 +1,5 @@
 import argparse
+import praw
 
 # Define parser and arguments
 parser = argparse.ArgumentParser()
