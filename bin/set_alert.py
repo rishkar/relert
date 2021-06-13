@@ -21,3 +21,5 @@ if os.environ['RELERT_CLIENT_ID'] is None:
 if os.environ['RELERT_CLIENT_SECRET'] is None:
     print("ERROR: RELERT_CLIENT_SECRET environment variable not set.")
     sys.exit(1)
+
+reddit_con = praw.Reddit(client_id=os.environ['RELERT_CLIENT_ID'], client_secret=os.environ['RELERT_CLIENT_SECRET'])
