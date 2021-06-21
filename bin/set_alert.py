@@ -46,24 +46,10 @@ if not requests.post(args.webhook, {"content": "Relert is starting...", "usernam
 subreddit_con = reddit_con.subreddit(args.subreddit)
 
 # Make our loops!
-while True:
-    first = True
-    prev_sub = None
-    # Let's start iterating thru all the new submissions
-    for submission in subreddit_con.stream.submissions():
-        # If we've reached the point we were at during the last iteration we don't want to go further
-        if prev_sub == submission:
-            break
-        elif first:
-            prev_sub = submission
-            first = False
-
-        # If the submission matches our term, let's send an alert!
-        if args.term in submission.title:
-            message = "ALERT: Term %s in Subreddit %s found:\n**Submission Title:** %s\n**Link:** %s" % \
-                      (args.term, args.subreddit, submission.title, submission.url)
-            print(message + "\n Sending to discord...")
-            requests.post(args.webhook, {"content": message, "username": "r/"+args.subreddit})
-
-    print("Nothing more found. Sleeping for %d seconds..." % args.frequency)
-    time.sleep(args.frequency)
+for submission in subreddit_con.stream.submissions():
+    # If the submission matches our term, let's send an alert!
+    if args.term in submission.title:
+        message = "ALERT: Term %s in Subreddit %s found:\n**Submission Title:** %s\n**Link:** %s" % \
+                  (args.term, args.subreddit, submission.title, submission.url)
+        print(message + "\n Sending to discord...")
+        requests.post(args.webhook, {"content": message, "username": "r/"+args.subreddit})
