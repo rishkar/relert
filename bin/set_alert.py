@@ -59,9 +59,11 @@ while True:
             first = False
 
         # If the submission matches our term, let's send an alert!
-        if args.term in submission.name:
+        if args.term in submission.title:
             message = "ALERT: Term %s in Subreddit %s found:\n**Submission Title:** %s\n**Link:** %s" % \
-                      (args.term, args.subreddit, submission.name, submission.url)
+                      (args.term, args.subreddit, submission.title, submission.url)
+            print(message + "\n Sending to discord...")
             requests.post(args.webhook, {"content": message, "username": "r/"+args.subreddit})
 
+    print("Nothing more found. Sleeping for %d seconds..." % args.frequency)
     time.sleep(args.frequency)
