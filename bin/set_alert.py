@@ -1,9 +1,10 @@
-import argparse
-import sys
-import praw
 import os
-import prawcore
+import sys
+import argparse
+import time
 import requests
+import praw
+import prawcore
 
 # Define parser and arguments
 parser = argparse.ArgumentParser()
@@ -37,7 +38,30 @@ except prawcore.exceptions.NotFound or prawcore.exceptions.Redirect:
     sys.exit(1)
 
 # Is the webhook valid?
-if not requests.post(args.webhook, {"content": "Relert is starting..."}).ok:
+if not requests.post(args.webhook, {"content": "Relert is starting...", "username": "r/"+args.subreddit}).ok:
     print("ERROR: Failed to communicate with your Discord webhook. Is the URL correct?")
     sys.exit(1)
 
+# Initialize our subreddit object
+subreddit_con = reddit_con.subreddit(args.subreddit)
+
+# Make our loops!
+while True:
+    first = True
+    prev_sub = None
+    # Let's start iterating thru all the new submissions
+    for submission in subreddit_con.stream.submissions():
+        # If we've reached the point we were at during the last iteration we don't want to go further
+        if prev_sub == submission:
+            break
+        elif first:
+            prev_sub = submission
+            first = False
+
+        # If the submission matches our term, let's send an alert!
+        if args.term in submission.name:
+            message = "ALERT: Term %s in Subreddit %s found:\n**Submission Title:** %s\n**Link:** %s" % \
+                      (args.term, args.subreddit, submission.name, submission.url)
+            requests.post(args.webhook, {"content": message, "username": "r/"+args.subreddit})
+
+    time.sleep(args.frequency)
