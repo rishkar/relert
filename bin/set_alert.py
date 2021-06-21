@@ -2,17 +2,16 @@ import argparse
 import sys
 import praw
 import os
-
-# Define parser and arguments
 import prawcore
 import requests
 
+# Define parser and arguments
 parser = argparse.ArgumentParser()
 
-parser.add_argument("-t", "--term", required=True)
-parser.add_argument("-s", "--subreddit", required=True)
-parser.add_argument("-w", "--webhook", required=True)
-parser.add_argument("-f", "--frequency")
+parser.add_argument("-t", "--term", required=True, help="The term to search for in subreddit post titles")
+parser.add_argument("-s", "--subreddit", required=True, help="The subreddit to search.")
+parser.add_argument("-w", "--webhook", required=True, help="The Discord webhook to send messages to.")
+parser.add_argument("-f", "--frequency", default=60, help="Run a check every X seconds. Defaults to 60.")
 
 args = parser.parse_args()
 
@@ -38,6 +37,7 @@ except prawcore.exceptions.NotFound or prawcore.exceptions.Redirect:
     sys.exit(1)
 
 # Is the webhook valid?
-if not requests.post(args.webhook, {"content": "Relert is starting..."}):
+if not requests.post(args.webhook, {"content": "Relert is starting..."}).ok:
     print("ERROR: Failed to communicate with your Discord webhook. Is the URL correct?")
     sys.exit(1)
+
