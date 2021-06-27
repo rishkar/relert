@@ -1,7 +1,7 @@
 import os
 import sys
 import argparse
-import time
+import re
 import requests
 import praw
 import prawcore
@@ -9,10 +9,10 @@ import prawcore
 # Define parser and arguments
 parser = argparse.ArgumentParser()
 
-parser.add_argument("-t", "--term", required=True, help="The term to search for in subreddit post titles")
+parser.add_argument("-r", "--regex", required=True, help="The regexes, separated by commas, to run against the post"
+                                                         " titles")
 parser.add_argument("-s", "--subreddit", required=True, help="The subreddit to search.")
 parser.add_argument("-w", "--webhook", required=True, help="The Discord webhook to send messages to.")
-parser.add_argument("-f", "--frequency", default=60, help="Run a check every X seconds. Defaults to 60.")
 
 args = parser.parse_args()
 
@@ -45,11 +45,13 @@ if not requests.post(args.webhook, {"content": "Relert is starting...", "usernam
 # Initialize our subreddit object
 subreddit_con = reddit_con.subreddit(args.subreddit)
 
-# Make our loops!
+# Start listening to the stream and let us know if something shows up.
 for submission in subreddit_con.stream.submissions():
     # If the submission matches our term, let's send an alert!
-    if args.term in submission.title:
-        message = "ALERT: Term %s in Subreddit %s found:\n**Submission Title:** %s\n**Link:** %s" % \
-                  (args.term, args.subreddit, submission.title, submission.url)
-        print(message + "\n Sending to discord...")
-        requests.post(args.webhook, {"content": message, "username": "r/"+args.subreddit})
+    for regex in str(args.regex).split(','):
+        if re.search(regex, submission.title) is not None:
+            print("Submission title \"%s\" matches specified regex \"%s\". Sending to discord..." % (submission.title, regex))
+            message = "-----\nRELERT: Regex *\"%s\"* match found in Subreddit *\"r/%s\"*:\n\n" \
+                      "**Submission Title:** %s\n**Link:** %s" % \
+                      (regex, args.subreddit, submission.title, submission.url)
+            requests.post(args.webhook, {"content": message, "username": "r/"+args.subreddit})
